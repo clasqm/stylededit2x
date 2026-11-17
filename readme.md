@@ -9,7 +9,7 @@ A set of CLI utilities, vibe coded with Gemini, that transform the
 StyledEdit file format into one of seven much more common ones.
 (.abw .docx .odt .rtf .html .md and .pdf).
 
-Usage: stylededit2<format> infile outfile
+Usage: stylededit2<format> infile outfile  
 Example: stylededit2docx styled_textfile  converted_file.docx
 
 Also, a graphical front-end, painstakingly crafted by human hands in yab. Package as a Desktop applet
