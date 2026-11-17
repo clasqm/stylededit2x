@@ -1,0 +1,285 @@
+#!/bin/env yab
+############# Prologue #############
+
+//*************************
+//*****Global Variables****
+//*************************
+ 
+## Technically, yab does not require you to declare global variables,
+##It just is a really, really good idea to do it anyway.
+// set DEBUG = 1 to print out all messages on the console
+DEBUG = 1
+//change this to DEBUG = 0 when you are ready to bind the program for distribution
+ 
+graphicx = 252
+buttonx = graphicx + 20
+graphicy = 62
+buttony = graphicy+ 10
+numberofbuttons = 8 REM including header space
+origin$ = ""
+destination$=""
+shortfilename$ = ""
+
+REM Graphics - will need to adjust this before packaging
+REM or think of some other way 
+ 
+ if DirectoryExists("/boot/system/data/StyledEdit2X/graphics") then
+ 	graphicpath$ = "/boot/system/data/StyledEdit2X/graphics/"
+elseif DirectoryExists("/boot/home/config/data/StyledEdit2X/graphics")
+	graphicpath$ = "/boot/home/config/data//StyledEdit2X/graphics/"
+elseif DirectoryExists("/boot/home/config/non-packaged/data/StyledEdit2X/graphics")
+ 	graphicpath$ = "/boot/home/config/non-packaged/data/StyledEdit2X/graphics/"
+  else
+ 	REM for development only
+ 	graphicpath$ = "/boot/home/yab_work/stylededit2x/graphics/"
+endif 
+label graphicpath_done
+
+topgraphic$ = graphicpath$  + "ST2Xheader.png"
+abwnormal$ = graphicpath$  + "stylededit2abw.png"
+abwpressed$ = graphicpath$  + "stylededit2abwpressed.png"
+abwdeactivated$ = graphicpath$  + "stylededit2abwdeactivated.png"
+docxnormal$ = graphicpath$  + "stylededit2docx.png"
+docxpressed$ = graphicpath$  + "stylededit2docxpressed.png"
+docxdeactivated$ = graphicpath$  + "stylededit2docxdeactivated.png"
+htmlnormal$ = graphicpath$  + "stylededit2html.png"
+htmlpressed$ = graphicpath$  + "stylededit2htmlpressed.png"
+htmldeactivated$ = graphicpath$  + "stylededit2htmldeactivated.png"
+mdnormal$ = graphicpath$  + "stylededit2md.png"
+mdpressed$ = graphicpath$  + "stylededit2mdpressed.png"
+mddeactivated$ = graphicpath$  + "stylededit2mddeactivated.png"
+odtnormal$ = graphicpath$  + "stylededit2odt.png"
+odtpressed$ = graphicpath$  + "stylededit2odtpressed.png"
+odtdeactivated$ = graphicpath$  + "stylededit2odtdeactivated.png"
+rtfnormal$ = graphicpath$  + "stylededit2rtf.png"
+rtfpressed$ = graphicpath$  + "stylededit2rtfpressed.png"
+rtfdeactivated$ = graphicpath$  + "stylededit2rtfdeactivated.png"
+pdfnormal$ = graphicpath$  + "stylededit2pdf.png"
+pdfpressed$ = graphicpath$  + "stylededit2pdfpressed.png"
+pdfdeactivated$ = graphicpath$  + "stylededit2pdfdeactivated.png"
+ 
+##########################
+######Preliminary Commands#####
+##########################
+
+## Commands to run before the Main Loop come here.
+## e.g. setting up a window with a menu.
+  
+OpenWindow()
+ 
+#######End of Prologue#######
+
+
+//Yabadabbadoo notification
+########DO NOT RENAME THIS FILE!########
+//Yabadabbadoo needs it to function.
+//Of course, this does not apply if you are editing in the official yab IDE.
+
+//Main Message Loop
+dim msg$(1)
+while(not leavingLoop)
+	nCommands = token(message$, msg$(), "|")
+	for everyCommand = 1 to nCommands
+		if(DEBUG and msg$(everyCommand)<>"") print msg$(everyCommand)
+		switch(msg$(everyCommand))
+			case "_QuitRequested":
+			case "MainWindow:_QuitRequested":
+			case "MainWindow:File:Quit":
+				leavingLoop = true
+				break
+			case "markdownbutton"
+				olddestination$= destination$
+				destination$ = destination$ + ".md"
+				system("stylededit2md \"" + origin$ + "\" \"" + destination$ + "\"")
+				system("mimeset -F '" + destination$ + "'")
+				destination$= olddestination$
+				break
+			case "pdfbutton"
+				olddestination$= destination$
+				destination$ = destination$ + ".pdf"
+				system("stylededit2pdf \"" + origin$ + "\" \"" + destination$ + "\"")
+				system("mimeset -F '" + destination$ + "'")
+				destination$= olddestination$
+				break
+			case "htmlbutton"
+				olddestination$= destination$
+				destination$ = destination$ + ".html"
+				system("stylededit2html \"" + origin$ + "\" \"" + destination$ + "\"")
+				system("mimeset -F '" + destination$ + "'")
+				destination$ = olddestination$
+				break
+			case "rtfbutton"
+				olddestination$= destination$
+				destination$ = destination$ + ".rtf"
+				system("stylededit2rtf \"" + origin$ + "\" \"" + destination$ + "\"")
+				system("mimeset -F '" + destination$ + "'")
+				destination$ = olddestination$
+				break
+			case "odtbutton"
+				olddestination$= destination$
+				destination$ = destination$ + ".odt"
+				system("stylededit2odt \"" + origin$ + "\" \"" + destination$ + "\"")
+				system("mimeset -F '" + destination$ + "'")
+				destination$ = olddestination$
+				break
+			case "mswordbutton"
+				olddestination$= destination$
+				destination$ = destination$ + ".docx"
+				system("stylededit2docx \"" + origin$ + "\" \"" + destination$ + "\"")
+				system("mimeset -F '" + destination$ + "'")
+				destination$ = olddestination$
+				break
+			case "abwbutton"
+				olddestination$= destination$
+				destination$ = destination$ + ".abw"
+				system("stylededit2abw \"" + origin$ + "\" \"" + destination$ + "\"")
+				system("mimeset -F '" + destination$ + "'")
+				destination$ = olddestination$
+				break
+			default:
+				break
+		end switch
+		if instr(msg$(everyCommand), "DropZone:_Dropped:") then 
+			Parsefilename(msg$(everyCommand))
+			break REM this prevents multiple drops
+		endif
+	next everyCommand
+wend
+CloseWindow()
+end
+
+sub CloseWindow()
+	//Close down the main window
+	window close "MainWindow"
+end sub
+
+sub DirectoryExists(File$)
+	local TestExistence$
+	TestExistence$ = "if [ -d " + File$ + " ] ; then echo exists; else echo huh; fi"
+	TestExistence$ = system$(TestExistence$ )
+	If instr(TestExistence$,"exists") then
+		return 1
+	else
+		return 0
+	endif
+end sub
+
+SUB ExecutableFileExists(File$)
+	local TestExistence$
+	TestExistence$ = "if [ -x " + File$ + " ] ; then echo exists; else echo huh; fi"
+	TestExistence$ = system$(TestExistence$ )
+	If instr(TestExistence$,"exists") then
+		return 1
+	else
+		return 0
+	endif
+END SUB
+
+sub OpenWindow()
+	//Setup the main window here
+	local xorigin, yorigin, loaderror, startx, starty
+	xorigin = 100 : yorigin = 100
+	startx =1: starty = 1
+	
+	REM write a position-saving routine  later.
+	
+	window open xorigin,yorigin to xorigin + buttonx ,yorigin + (buttony * numberofbuttons), "MainWindow", "StyledEdit2X"
+	window set "MainWindow", "look", "floating"
+	window set "MainWindow", "flags", "not-zoomable"
+	window set "MainWindow", "flags", "not-resizable"
+	view startx, starty to  buttonx, buttony, "DropZone", "MainWindow"
+	 view dropzone "DropZone"
+	loaderror = draw image startx,starty to buttonx, buttony , topgraphic$, "DropZone"
+	tooltip "DropZone", "start by dropping a StyledEdit file here"
+	startx = int((buttonx - graphicx)/2)
+	starty = starty + buttony + int((buttony - graphicy)/2)
+	button image startx, starty, "markdownbutton", mdpressed$, mdnormal$, mddeactivated$,"MainWindow"
+	starty = starty + buttony 
+	button image startx, starty, "htmlbutton", htmlpressed$, htmlnormal$, htmldeactivated$,"MainWindow"
+	starty = starty + buttony 
+	button image startx, starty, "rtfbutton", rtfpressed$, rtfnormal$, rtfdeactivated$,"MainWindow"
+	starty = starty + buttony 
+	button image startx, starty, "pdfbutton", pdfpressed$, pdfnormal$, pdfdeactivated$,"MainWindow"
+	starty = starty + buttony 
+	button image startx, starty, "odtbutton", odtpressed$, odtnormal$, odtdeactivated$,"MainWindow"
+	starty = starty + buttony 
+	button image startx, starty, "mswordbutton", docxpressed$, docxnormal$, docxdeactivated$,"MainWindow"
+	starty = starty + buttony 
+	button image startx, starty, "abwbutton", abwpressed$, abwnormal$, abwdeactivated$,"MainWindow"
+	
+	option set "markdownbutton", "enabled", 0
+	option set "htmlbutton", "enabled", 0
+	option set "rtfbutton", "enabled", 0
+	option set "odtbutton", "enabled", 0
+	option set "mswordbutton", "enabled", 0
+	option set "abwbutton", "enabled", 0
+	option set "pdfbutton", "enabled", 0
+end sub
+
+sub Parsefilename(filetoparse$)
+	local kakpraat$
+	kakpraat$ = "Sorry, This program only accepts regular text files as input. You dropped a" 
+	filetoparse$ = mid$(filetoparse$, 19)
+	origin$ = filetoparse$
+	shortfilename$ = mid$(filetoparse$, rinstr(filetoparse$, "/") + 1)
+	if DirectoryExists(filetoparse$) then
+		kakpraat$ = kakpraat$ + " directory!"
+		alert kakpraat$, "Oh, sorry about that", "stop"
+		return
+	endif
+	if ExecutableFileExists(filetoparse$) then
+		kakpraat$ = kakpraat$ + "n executable file!"
+		alert kakpraat$, "Oh, sorry about that", "stop"
+		return
+	endif
+	if SymlinkExists(filetoparse$) then
+		kakpraat$ = kakpraat$ + " symlink!"
+		alert kakpraat$, "Oh, sorry about that", "stop"
+		return
+	endif
+	if not TextFileCheck(filetoparse$) then
+		return
+	endif
+	origin$ = filetoparse$
+	shortfilename$ = mid$(filetoparse$, rinstr(filetoparse$, "/") + 1)
+	destination$ = "/boot/home/Desktop/" + shortfilename$
+	window set "MainWindow", "title", "ST2X: " + shortfilename$
+	option set "markdownbutton", "enabled", 1
+	tooltip "markdownbutton","Convert StyledEdit file to Markdown format"
+	option set "htmlbutton", "enabled", 1
+	tooltip "htmlbutton","Convert StyledEdit file to HTML format"
+	option set "rtfbutton", "enabled", 1
+	tooltip "rtfbutton","Convert StyledEdit file to RTF format"
+	option set "odtbutton", "enabled", 1
+	tooltip "odtbutton","Convert StyledEdit file to ODT format"
+	option set "mswordbutton", "enabled", 1
+	tooltip "mswordbutton","Convert StyledEdit file to DOCX format"
+	option set "abwbutton", "enabled", 1
+	tooltip "abwbutton","Convert StyledEdit file to ABW format"
+	option set "pdfbutton", "enabled", 1
+	tooltip "pdfbutton","Convert StyledEdit file to PDF format"
+end sub
+
+SUB SymlinkExists(File$)
+	local TestExistence$
+	TestExistence$ = "if [ -L " + File$ + " ] ; then echo exists; else echo huh; fi"
+	TestExistence$ = system$(TestExistence$ )
+	If instr(TestExistence$,"exists") then
+		return 1
+	else
+		return 0
+	endif
+END SUB
+
+sub TextFileCheck(FileToOpen$)
+	//check if requested file is some kind of text file - Trying to load binaries WILL crash the CLI utils
+	system("mimeset -F '" + FileToOpen$ + "'")
+	if (left$(system$("catattr -d BEOS:TYPE '" + FileToOpen$ + "'"), 5)) <> "text/" then
+		alert FileToOpen$ + "  does not look like a text file!", "Oh ...", "warning"
+		return 0
+	endif
+	return 1
+end sub
+
+#####DATA statements, if any, come here######
+
